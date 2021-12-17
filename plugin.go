@@ -35,6 +35,7 @@ type (
 		VarFiles         []string
 		TerraformDataDir string
 		DisableRefresh   bool
+		UseIRSA			 bool
 	}
 
 	// Netrc is credentials for cloning
@@ -80,6 +81,10 @@ func (p Plugin) Exec() error {
 
 	if p.Config.RoleARN != "" && !credsSet() {
 		assumeRole(p.Config.RoleARN)
+	}
+
+	if p.Config.UseIRSA {
+		session.NewSession()
 	}
 
 	// writing the .netrc file with Github credentials in it.

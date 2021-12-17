@@ -39,6 +39,11 @@ func main() {
 			Usage:  "pass filename to source it and load variables into current shell",
 			EnvVar: "PLUGIN_ENV_FILE",
 		},
+		cli.BoolFlag{
+			Name:   "use_IRSA",
+			Usage:  "option for using aws IAM roles for service accounts",
+			EnvVar: "PLUGIN_USE_IRSA",
+		},
 		cli.StringFlag{
 			Name:   "init_options",
 			Usage:  "options for the init command. See https://www.terraform.io/docs/commands/init.html",
@@ -169,6 +174,7 @@ func run(c *cli.Context) error {
 			VarFiles:         c.StringSlice("var_files"),
 			TerraformDataDir: c.String("tf_data_dir"),
 			DisableRefresh:   c.Bool("disable_refresh"),
+			UseIRSA:   		  c.Bool("use_irsa"),
 		},
 		Netrc: Netrc{
 			Login:    c.String("netrc.username"),
