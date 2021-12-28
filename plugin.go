@@ -84,7 +84,17 @@ func (p Plugin) Exec() error {
 	}
 
 	if p.Config.UseIRSA {
-		session.NewSession()
+		sess := session.Must(session.NewSession())
+		value, err := sess.Config.Credentials.Get()
+		fmt.Println(value.AccessKeyID, value.SecretAccessKey, value.SessionToken)
+	
+		if err != nil {
+			fmt.Println("NewSession Error", err)
+			return err
+		}
+		os.Setenv("AWS_ACCESS_KEY_ID", value.AccessKeyID)
+		os.Setenv("AWS_SECRET_ACCESS_KEY", value.SecretAccessKey)
+		os.Setenv("AWS_SESSION_TOKEN", value.SessionToken)
 	}
 
 	// writing the .netrc file with Github credentials in it.
