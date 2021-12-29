@@ -40,7 +40,7 @@ func main() {
 			EnvVar: "PLUGIN_ENV_FILE",
 		},
 		cli.BoolFlag{
-			Name:   "use_IRSA",
+			Name:   "use_irsa",
 			Usage:  "option for using aws IAM roles for service accounts",
 			EnvVar: "PLUGIN_USE_IRSA",
 		},
@@ -174,7 +174,7 @@ func run(c *cli.Context) error {
 			VarFiles:         c.StringSlice("var_files"),
 			TerraformDataDir: c.String("tf_data_dir"),
 			DisableRefresh:   c.Bool("disable_refresh"),
-			UseIRSA:   		  c.Bool("use_irsa"),
+			UseIRSA:          c.Bool("use_irsa"),
 		},
 		Netrc: Netrc{
 			Login:    c.String("netrc.username"),

@@ -35,7 +35,7 @@ type (
 		VarFiles         []string
 		TerraformDataDir string
 		DisableRefresh   bool
-		UseIRSA			 bool
+		UseIRSA          bool
 	}
 
 	// Netrc is credentials for cloning
@@ -83,18 +83,8 @@ func (p Plugin) Exec() error {
 		assumeRole(p.Config.RoleARN)
 	}
 
-	if p.Config.UseIRSA {
-		sess := session.Must(session.NewSession())
-		value, err := sess.Config.Credentials.Get()
-		fmt.Println(value.AccessKeyID, value.SecretAccessKey, value.SessionToken)
-	
-		if err != nil {
-			fmt.Println("NewSession Error", err)
-			return err
-		}
-		os.Setenv("AWS_ACCESS_KEY_ID", value.AccessKeyID)
-		os.Setenv("AWS_SECRET_ACCESS_KEY", value.SecretAccessKey)
-		os.Setenv("AWS_SESSION_TOKEN", value.SessionToken)
+	if p.Config.UseIRSA && irsaVarsSet() {
+		assumeIRSARole()
 	}
 
 	// writing the .netrc file with Github credentials in it.
@@ -195,6 +185,16 @@ func credsSet() bool {
 	return true
 }
 
+func irsaVarsSet() bool {
+	irsaVars := []string{"AWS_ROLE_ARN", "AWS_WEB_IDENTITY_TOKEN_FILE"}
+	for _, irsaVariable := range irsaVars {
+		if os.Getenv(irsaVariable) == "" {
+			return false
+		}
+	}
+	return true
+}
+
 func assumeRole(roleArn string) {
 	client := sts.New(session.New())
 	duration := time.Hour * 1
@@ -211,6 +211,26 @@ func assumeRole(roleArn string) {
 			"error": err,
 		}).Fatal("Error assuming role!")
 	}
+	os.Setenv("AWS_ACCESS_KEY_ID", value.AccessKeyID)
+	os.Setenv("AWS_SECRET_ACCESS_KEY", value.SecretAccessKey)
+	os.Setenv("AWS_SESSION_TOKEN", value.SessionToken)
+}
+
+func assumeIRSARole() {
+	duration := time.Hour * 1
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		AssumeRoleDuration: duration,
+	}))
+	value, err := sess.Config.Credentials.Get()
+
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Fatal("Error assuming IRSA role!")
+	}
+
+	fmt.Println("Assumed IRSA role.")
+
 	os.Setenv("AWS_ACCESS_KEY_ID", value.AccessKeyID)
 	os.Setenv("AWS_SECRET_ACCESS_KEY", value.SecretAccessKey)
 	os.Setenv("AWS_SESSION_TOKEN", value.SessionToken)
